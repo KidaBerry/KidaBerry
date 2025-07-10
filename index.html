@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rotating Grid Images</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #21736a;
+      height: 100%;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gridCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('gridCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const spacing = 120;
+    const size = 60;
+    let angle = 0;
+
+    const imageSources = [
+      'Raspberry.png',
+      'Blackberry.png'//,
+      //'Blueberry.png'
+    ];
+
+    const images = [];
+    let loadedCount = 0;
+
+    function preloadImages(sources, callback) {
+      sources.forEach((src, index) => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => {
+          loadedCount++;
+          if (loadedCount === sources.length) {
+            callback();
+          }
+        };
+        img.onerror = () => console.error("Image failed to load:", src);
+        images[index] = img;
+      });
+    }
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      angle += 0.01;
+
+      const cols = Math.ceil(canvas.width / spacing) + 1;
+      const rows = Math.ceil(canvas.height / spacing) + 1;
+
+      for (let col = 0; col < cols; col++) {
+        for (let row = 0; row < rows; row++) {
+          const x = col * spacing;
+          const y = row * spacing;
+
+          const imageIndex = (col + row) % images.length;
+          const img = images[imageIndex];
+
+          ctx.save();
+          ctx.translate(x + size / 2, y + size / 2);
+          ctx.rotate(angle);
+          ctx.drawImage(img, -size / 2, -size / 2, size, size);
+          ctx.restore();
+        }
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    preloadImages(imageSources, () => {
+      requestAnimationFrame(draw);
+    });
+  </script>
+</body>
+</html>
